@@ -1,0 +1,38 @@
+name: Dependency Scanning (OWASP)
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # diariamente às 02:00 UTC — ajuste conforme quiser
+  workflow_dispatch:
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Run OWASP Dependency-Check
+        uses: jeremylong/dependency-check-action@v2
+        with:
+          project: "my-java-app"
+          scan: "./"
+          format: "ALL"   # HTML, XML, JSON
+          failBuildOnCVSS: "7"  # falhar se CVSS >= 7 (ajuste conforme política)
+      
+      - name: Upload Dependency-Check reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-reports
+          path: dependency-check-report.*

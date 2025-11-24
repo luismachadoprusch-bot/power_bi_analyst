@@ -1,0 +1,53 @@
+name: Build & Test (Maven)
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [11, 17]
+    env:
+      MAVEN_OPTS: -Xmx2g
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Cache ~/.m2
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build (tests)
+        run: mvn -B -V clean verify
+
+      - name: Generate SpotBugs report
+        run: mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs
+
+      - name: Upload test and static-analysis reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ matrix.java }}
+          path: |
+            target/surefire-reports
+            target/jacoco.exec
+            target/site/spotbugs.html
+            target/pmd.xml || true
