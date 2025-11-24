@@ -1,0 +1,14 @@
+{
+  "name": "estrutura-dados-unificada",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node example.js",
+    "migrate": "node db.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^8.0.0",
+    "ajv": "^8.12.0",
+    "uuid": "^9.0.0"
+  }
+}
